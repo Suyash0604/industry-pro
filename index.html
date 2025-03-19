@@ -1,0 +1,41 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Project Scheduler</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Project Scheduler</h1>
+
+        <!-- Task Input Form -->
+        <div class="task-form">
+            <input type="text" id="taskName" placeholder="Task Name" required>
+            <input type="number" id="duration" placeholder="Duration (days)" required>
+            <input type="text" id="dependency" placeholder="Dependency (Task Name)">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <!-- Display Tasks -->
+        <h2>Task List</h2>
+        <ul id="taskList"></ul>
+
+        <!-- AI Recommendations -->
+        <h2>AI Suggestions</h2>
+        <div id="aiSuggestions"></div>
+
+        <!-- Gantt Chart -->
+        <h2>Project Timeline</h2>
+        <div id="ganttChart"></div>
+
+        <!-- Generate Schedule Button -->
+        <button onclick="generateSchedule()">Generate AI Schedule</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

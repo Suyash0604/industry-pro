@@ -1,0 +1,72 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-form input {
+    padding: 8px;
+    margin: 5px;
+    width: 200px;
+}
+
+button {
+    padding: 8px 15px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 0;
+}
+
+#taskList {
+    list-style: none;
+    padding: 0;
+}
+
+#taskList li {
+    background: #f8f9fa;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: left;
+}
+
+#ganttChart {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.gantt-task {
+    background: #4CAF50;
+    color: white;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 120px;
+    text-align: center;
+}
+
+#aiSuggestions ul {
+    list-style: none;
+    padding: 0;
+}
+
+#aiSuggestions li {
+    background: #fff3cd;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: left;
+}
