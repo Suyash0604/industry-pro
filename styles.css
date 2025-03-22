@@ -1,61 +1,132 @@
-/* styles.css */
+/* Import Professional Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    font-family: 'Poppins', sans-serif;
+    background: #161A30;
+    color: #E3E3E3;
     text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
+/* Container */
 .container {
     width: 80%;
     margin: auto;
-    background: white;
-    padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    background: #1F233A;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.4);
 }
 
-.task-form input {
-    padding: 8px;
-    margin: 5px;
-    width: 200px;
+/* Headers */
+h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #A7C7E7;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
+h2 {
+    font-size: 22px;
+    font-weight: 500;
+    color: #89C2D9;
+    margin-top: 20px;
+}
+
+/* Input Fields */
+input, select,textarea {
+    padding: 12px;
+    margin: 10px;
+    width: 270px;
+    background: #222645;
+    border: 1px solid #3A3F66;
+    outline: none;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-size: 15px;
+    transition: 0.3s;
+    font-family: 'Inter', sans-serif;
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+input:focus, select:focus {
+    border-color: #A7C7E7;
+    box-shadow: 0px 0px 8px rgba(167, 199, 231, 0.5);
+}
+
+/* Buttons */
 button {
-    padding: 8px 15px;
-    background: #2196F3;
-    color: white;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #556CD6, #334E9C);
+    color: #ffffff;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    margin: 10px 0;
+    transition: 0.3s ease-in-out;
+    box-shadow: 2px 4px 10px rgba(85, 108, 214, 0.3);
 }
 
+button:hover {
+    background: linear-gradient(135deg, #4159B5, #2B3E73);
+    transform: translateY(-2px);
+    box-shadow: 2px 6px 15px rgba(85, 108, 214, 0.5);
+}
+
+/* Task List */
 #taskList {
     list-style: none;
     padding: 0;
 }
 
 #taskList li {
-    background: #f8f9fa;
-    margin: 5px;
-    padding: 10px;
-    border-radius: 4px;
+    background: #2B2F55;
+    margin: 10px;
+    padding: 14px;
+    border-radius: 8px;
     text-align: left;
+    transition: 0.3s;
+    border-left: 5px solid #A7C7E7;
+    font-size: 15px;
 }
 
+#taskList li:hover {
+    background: #373B6C;
+}
+
+/* Gantt Chart */
 #ganttChart {
     margin-top: 20px;
     text-align: left;
 }
 
 .gantt-task {
-    background: #4CAF50;
+    background: #0077B6;
     color: white;
-    margin: 5px;
-    padding: 10px;
-    border-radius: 4px;
+    margin: 8px;
+    padding: 12px;
+    border-radius: 6px;
     display: inline-block;
-    min-width: 120px;
+    min-width: 140px;
     text-align: center;
+    box-shadow: 0px 4px 12px rgba(0, 119, 182, 0.3);
+    font-size: 14px;
+}
+
+/* AI Suggestions */
+#aiSuggestions {
+    background: #2B2F55;
+    padding: 18px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 8px rgba(255, 255, 255, 0.1);
 }
 
 #aiSuggestions ul {
@@ -64,9 +135,34 @@ button {
 }
 
 #aiSuggestions li {
-    background: #fff3cd;
-    margin: 5px;
-    padding: 10px;
-    border-radius: 4px;
+    background: #3B3F77;
+    margin: 6px;
+    padding: 12px;
+    border-radius: 8px;
     text-align: left;
+    font-size: 14px;
+}
+
+/* Smooth Animations */
+button, input, select, #taskList li, .gantt-task, #aiSuggestions li {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+
+    input, select {
+        width: 90%;
+    }
+}
+.ai-task {
+    background: #ffc107;
+    color: black;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    font-weight: bold;
 }

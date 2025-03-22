@@ -1,19 +1,29 @@
-// script.js
 let tasks = [];
 let nextId = 1;
 
 function addTask() {
     const name = document.getElementById("taskName").value.trim();
     const duration = parseInt(document.getElementById("duration").value);
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
     const dependencyName = document.getElementById("dependency").value.trim();
+    const teamAssigned = document.getElementById("teamAssigned").value;
+    const teamSize = parseInt(document.getElementById("teamSize").value);
+    const teamMembersInput = document.getElementById("teamMembers").value.trim();
 
-    if (!name || isNaN(duration) || duration <= 0) {
-        alert("Please enter valid Task Name and Duration (positive number)!");
+    if (!name || isNaN(duration) || duration <= 0 || !startDate || !endDate || isNaN(teamSize) || teamSize <= 0) {
+        alert("Please enter valid Task Name, Duration, Start Date, End Date, and Team Size!");
         return;
     }
 
     if (tasks.some(task => task.name === name)) {
         alert("Task name must be unique!");
+        return;
+    }
+
+    const teamMembers = teamMembersInput ? teamMembersInput.split(",").map(member => member.trim()) : [];
+    if (teamMembers.length !== teamSize) {
+        alert(`You entered ${teamMembers.length} members, but specified team size as ${teamSize}.`);
         return;
     }
 
@@ -31,80 +41,44 @@ function addTask() {
         id: nextId++,
         name,
         duration,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         dependency,
-        aiDuration: null,
-        startDate: null,
-        endDate: null
+        teamAssigned,
+        teamSize,
+        teamMembers
     });
-
-    document.getElementById("taskName").value = "";
-    document.getElementById("duration").value = "";
-    document.getElementById("dependency").value = "";
 
     displayTasks();
 }
 
 function displayTasks() {
     const taskList = document.getElementById("taskList");
-    taskList.innerHTML = "";
-
-    tasks.forEach(task => {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${task.name}</strong> - ${task.duration} days 
-            ${task.dependency ? `(Depends on: ${task.dependency})` : ""}`;
-        taskList.appendChild(li);
-    });
+    taskList.innerHTML = tasks.map(task => `
+        <li>
+            <strong>${task.name}</strong> - ${task.duration} days
+            ${task.dependency ? `(Depends on: ${task.dependency})` : ""}
+            <br><i>Team: ${task.teamAssigned} (${task.teamSize} members)</i>
+            <br><i>Start: ${task.startDate.toDateString()}, End: ${task.endDate.toDateString()}</i>
+        </li>`).join("\n");
 }
 
-async function trainModel() {
-    const model = tf.sequential();
-    model.add(tf.layers.dense({
-        inputShape: [3],
-        units: 8,
-        activation: "relu"
-    }));
-    model.add(tf.layers.dense({ units: 4, activation: "relu" }));
-    model.add(tf.layers.dense({ units: 1 }));
+function generateAISchedule() {
+    if (tasks.length === 0) {
+        alert("Please add tasks first!");
+        return;
+    }
 
-    model.compile({
-        optimizer: tf.train.adam(0.1),
-        loss: "meanSquaredError"
-    });
+    try {
+        const sortedTasks = topologicalSort();
+        if (!sortedTasks) return;
 
-    // Simulated training data (would be replaced with real historical data)
-    const xs = tf.tensor([
-        [1, 5, 0],  // Task ID, Original Duration, Has Dependency
-        [2, 3, 1],
-        [3, 7, 0]
-    ]);
-    const ys = tf.tensor([
-        [6],  // Adjusted Duration
-        [5],
-        [7]
-    ]);
-
-    await model.fit(xs, ys, {
-        epochs: 100,
-        batchSize: 32,
-        validationSplit: 0.2,
-        verbose: 0
-    });
-
-    return model;
-}
-
-async function predictDurations(model) {
-    const predictionData = tasks.map(task => [
-        task.id,
-        task.duration,
-        task.dependency ? 1 : 0
-    ]);
-
-    const predictions = await model.predict(tf.tensor(predictionData)).data();
-    
-    tasks.forEach((task, index) => {
-        task.aiDuration = Math.round(predictions[index]);
-    });
+        calculateSchedule(sortedTasks);
+        displayGanttChart(sortedTasks);
+    } catch (error) {
+        console.error("Error generating schedule:", error);
+        alert("Error generating schedule. Please check the console for details.");
+    }
 }
 
 function topologicalSort() {
@@ -142,90 +116,49 @@ function topologicalSort() {
 }
 
 function calculateSchedule(sortedTasks) {
-    const startDate = new Date();
-    const taskMap = new Map();
-
     sortedTasks.forEach(task => {
-        let earliestStart = startDate;
-        
+        let earliestStart = new Date(task.startDate);
+
         if (task.dependency) {
-            const depTask = taskMap.get(task.dependency);
+            const depTask = sortedTasks.find(t => t.name === task.dependency);
             if (depTask) earliestStart = new Date(depTask.endDate);
         }
 
         task.startDate = new Date(earliestStart);
         task.endDate = new Date(earliestStart);
-        task.endDate.setDate(task.endDate.getDate() + (task.aiDuration || task.duration));
-        
-        taskMap.set(task.name, task);
+        task.endDate.setDate(task.endDate.getDate() + task.duration);
     });
-
-    return sortedTasks;
-}
-
-async function generateSchedule() {
-    if (tasks.length === 0) {
-        alert("Please add tasks first!");
-        return;
-    }
-
-    try {
-        const model = await trainModel();
-        await predictDurations(model);
-        
-        const sortedTasks = topologicalSort();
-        if (!sortedTasks) return;
-
-        const scheduledTasks = calculateSchedule(sortedTasks);
-        displayGanttChart(scheduledTasks);
-        showRecommendations(scheduledTasks);
-    } catch (error) {
-        console.error("Error generating schedule:", error);
-        alert("Error generating schedule. Please check console for details.");
-    }
 }
 
 function displayGanttChart(tasks) {
     const ganttChart = document.getElementById("ganttChart");
-    ganttChart.innerHTML = "";
-
-    tasks.forEach(task => {
-        const taskElement = document.createElement("div");
-        taskElement.className = "gantt-task";
-        taskElement.innerHTML = `
-            <div>${task.name}</div>
-            <div>${task.startDate.toLocaleDateString()} - ${task.endDate.toLocaleDateString()}</div>
-            <div>${task.aiDuration ? `AI: ${task.aiDuration}` : task.duration} days</div>
-        `;
-        ganttChart.appendChild(taskElement);
-    });
+    ganttChart.innerHTML = tasks.map(task => `
+        <div class="gantt-task">
+            <div><strong>${task.name}</strong> - <i>Team: ${task.teamAssigned}</i></div>
+            <div>${task.startDate.toDateString()} - ${task.endDate.toDateString()}</div>
+            <div>Duration: ${task.duration} days</div>
+        </div>`).join("\n");
 }
 
-function showRecommendations(tasks) {
-    const recommendations = [];
-    const aiSuggestions = document.getElementById("aiSuggestions");
-
-    // Check for parallelization opportunities
-    const independentTasks = tasks.filter(t => !t.dependency);
-    if (independentTasks.length > 1) {
-        recommendations.push("PMI Recommendation: Multiple independent tasks detected. Consider parallel execution.");
+async function generateAISuggestions() {
+    if (tasks.length === 0) {
+        alert("No tasks available for AI recommendations!");
+        return;
     }
 
-    // Check for long durations
-    tasks.filter(t => t.aiDuration > 10).forEach(task => {
-        recommendations.push(`CMMI Suggestion: '${task.name}' has a long duration (${task.aiDuration} days). Consider breaking it into smaller tasks.`);
-    });
+    const aiSuggestionsDiv = document.getElementById("aiSuggestions");
+    aiSuggestionsDiv.innerHTML = "<p>Generating AI suggestions...</p>";
 
-    // Check for dependency chains
-    const dependencyChain = tasks.filter(t => t.dependency).length;
-    if (dependencyChain > tasks.length * 0.5) {
-        recommendations.push("PRINCE2 Advice: Complex dependency chain detected. Consider creating milestone checkpoints.");
-    }
+    const sortedTasks = tasks.map((task, index) => ({
+        ...task,
+        aiScore: task.duration / (task.dependency ? 2 : 1)
+    })).sort((a, b) => b.aiScore - a.aiScore);
 
-    // Display recommendations
-    aiSuggestions.innerHTML = `
-        <h3>AI Recommendations</h3>
-        ${recommendations.length ? `<ul>${recommendations.map(r => `<li>${r}</li>`).join("")}</ul>` : 
-        "<p>No specific recommendations. Project structure looks good!</p>"}
-    `;
+    aiSuggestionsDiv.innerHTML = sortedTasks.map(task => `
+        <div class="ai-task">
+            <strong>${task.name}</strong> - Priority Score: ${task.aiScore.toFixed(2)}
+            <br><i>Suggested Start: ${task.startDate.toDateString()}, End: ${task.endDate.toDateString()}</i>
+            <br><i>Recommended Team: ${task.teamAssigned} (${task.teamSize} members)</i>
+        </div>
+    `).join("\n");
 }
