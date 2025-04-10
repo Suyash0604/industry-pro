@@ -128,22 +128,14 @@ function addTask() {
     const endDate = document.getElementById("endDate").value;
     const dependencyName = document.getElementById("dependency").value.trim();
     const teamAssigned = document.getElementById("teamAssigned").value;
-    const teamSize = parseInt(document.getElementById("teamSize").value);
-    const teamMembersInput = document.getElementById("teamMembers").value.trim();
 
-    if (!name || isNaN(duration) || duration <= 0 || !startDate || !endDate || isNaN(teamSize) || teamSize <= 0) {
-        alert("Please enter valid Task Name, Duration, Start Date, End Date, and Team Size!");
+    if (!name || isNaN(duration) || duration <= 0 || !startDate || !endDate) {
+        alert("Please enter valid Task Name, Duration, Start Date, and End Date!");
         return;
     }
 
     if (tasks.some(task => task.name === name)) {
         alert("Task name must be unique!");
-        return;
-    }
-
-    const teamMembers = teamMembersInput ? teamMembersInput.split(",").map(member => member.trim()) : [];
-    if (teamMembers.length !== teamSize) {
-        alert(`You entered ${teamMembers.length} members, but specified team size as ${teamSize}.`);
         return;
     }
 
@@ -165,21 +157,37 @@ function addTask() {
         endDate: new Date(endDate),
         dependency,
         teamAssigned,
-        teamSize,
-        teamMembers
+        color: getRandomColor() // Add a random color for the Gantt chart
     });
 
     displayTasks();
+}
+
+// Generate a random color for Gantt chart bars
+function getRandomColor() {
+    const colors = [
+        '#4285F4', // Google Blue
+        '#EA4335', // Google Red
+        '#FBBC05', // Google Yellow
+        '#34A853', // Google Green
+        '#5E35B1', // Deep Purple
+        '#00ACC1', // Cyan
+        '#F57C00', // Orange
+        '#C2185B', // Pink
+        '#7CB342', // Light Green
+        '#546E7A'  // Blue Grey
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
 }
 
 // Display tasks in the task list
 function displayTasks() {
     const taskList = document.getElementById("taskList");
     taskList.innerHTML = tasks.map(task => `
-        <li>
+        <li style="border-left-color: ${task.color || '#A7C7E7'}">
             <strong>${task.name}</strong> - ${task.duration} days
             ${task.dependency ? `(Depends on: ${task.dependency})` : ""}
-            <br><i>Team: ${task.teamAssigned} (${task.teamSize} members)</i>
+            <br><i>Team: ${task.teamAssigned}</i>
             <br><i>Start: ${task.startDate.toDateString()}, End: ${task.endDate.toDateString()}</i>
         </li>`).join("\n");
 }
@@ -256,13 +264,114 @@ function calculateSchedule(sortedTasks) {
 
 // Display Gantt chart
 function displayGanttChart(tasks) {
+    if (tasks.length === 0) return;
+
     const ganttChart = document.getElementById("ganttChart");
-    ganttChart.innerHTML = tasks.map(task => `
-        <div class="gantt-task">
-            <div><strong>${task.name}</strong> - <i>Team: ${task.teamAssigned}</i></div>
-            <div>${task.startDate.toDateString()} - ${task.endDate.toDateString()}</div>
-            <div>Duration: ${task.duration} days</div>
-        </div>`).join("\n");
+    ganttChart.innerHTML = '';
+
+    // Find the earliest start date and latest end date
+    const earliestDate = new Date(Math.min(...tasks.map(task => task.startDate.getTime())));
+    const latestDate = new Date(Math.max(...tasks.map(task => task.endDate.getTime())));
+
+    // Calculate the total project duration in days
+    const totalDays = Math.ceil((latestDate - earliestDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Create the Gantt chart header
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'gantt-header';
+
+    // Add task name column
+    const taskNameHeader = document.createElement('div');
+    taskNameHeader.className = 'gantt-task-name';
+    taskNameHeader.textContent = 'Task';
+    headerDiv.appendChild(taskNameHeader);
+
+    // Add timeline
+    const timelineHeader = document.createElement('div');
+    timelineHeader.className = 'gantt-timeline';
+
+    // Create date markers
+    const dateMarkers = document.createElement('div');
+    dateMarkers.className = 'gantt-date-markers';
+
+    // Add date labels (every 7 days or less for shorter projects)
+    const interval = totalDays > 30 ? 7 : (totalDays > 14 ? 3 : 1);
+    for (let i = 0; i <= totalDays; i += interval) {
+        const date = new Date(earliestDate);
+        date.setDate(date.getDate() + i);
+
+        const marker = document.createElement('div');
+        marker.className = 'gantt-date-marker';
+        marker.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        marker.style.left = `${(i / totalDays) * 100}%`;
+        dateMarkers.appendChild(marker);
+    }
+
+    timelineHeader.appendChild(dateMarkers);
+    headerDiv.appendChild(timelineHeader);
+    ganttChart.appendChild(headerDiv);
+
+    // Create the Gantt chart body
+    tasks.forEach(task => {
+        const taskRow = document.createElement('div');
+        taskRow.className = 'gantt-row';
+
+        // Add task name
+        const taskName = document.createElement('div');
+        taskName.className = 'gantt-task-name';
+        taskName.innerHTML = `<div>${task.name}</div><div class="gantt-team">${task.teamAssigned}</div>`;
+        taskRow.appendChild(taskName);
+
+        // Add task timeline
+        const taskTimeline = document.createElement('div');
+        taskTimeline.className = 'gantt-timeline';
+
+        // Calculate position and width of task bar
+        const taskStart = task.startDate.getTime();
+        const taskEnd = task.endDate.getTime();
+        const projectStart = earliestDate.getTime();
+        const projectDuration = latestDate.getTime() - projectStart;
+
+        const leftPosition = ((taskStart - projectStart) / projectDuration) * 100;
+        const width = ((taskEnd - taskStart) / projectDuration) * 100;
+
+        // Create task bar
+        const taskBar = document.createElement('div');
+        taskBar.className = 'gantt-task-bar';
+        taskBar.style.left = `${leftPosition}%`;
+        taskBar.style.width = `${width}%`;
+        taskBar.style.backgroundColor = task.color || '#4285F4';
+
+        // Add tooltip with task details
+        taskBar.title = `${task.name}\nDuration: ${task.duration} days\nStart: ${task.startDate.toDateString()}\nEnd: ${task.endDate.toDateString()}`;
+
+        // Add dependency arrow if applicable
+        if (task.dependency) {
+            taskBar.classList.add('has-dependency');
+        }
+
+        taskTimeline.appendChild(taskBar);
+        taskRow.appendChild(taskTimeline);
+        ganttChart.appendChild(taskRow);
+    });
+
+    // Add legend
+    const legendDiv = document.createElement('div');
+    legendDiv.className = 'gantt-legend';
+    legendDiv.innerHTML = '<div class="legend-title">Teams:</div>';
+
+    // Get unique teams
+    const teams = [...new Set(tasks.map(task => task.teamAssigned))].filter(team => team);
+
+    teams.forEach(team => {
+        const teamColor = tasks.find(task => task.teamAssigned === team)?.color || getRandomColor();
+        const teamItem = document.createElement('div');
+        teamItem.className = 'legend-item';
+        teamItem.innerHTML = `<span class="legend-color" style="background-color: ${teamColor}"></span>${team}`;
+        legendDiv.appendChild(teamItem);
+    });
+
+    ganttChart.appendChild(legendDiv);
 }
 
 // Generate AI suggestions
@@ -555,17 +664,49 @@ async function generateGeminiOptimizations() {
         const result = await generateTaskOptimizations(tasks, projectName);
 
         if (result.success) {
-            // Format the response with better styling
-            const formattedSuggestions = result.suggestions
+            // Format the response with better styling and ensure point-by-point format
+            let formattedSuggestions = result.suggestions
                 .replace(/\*\*/g, '') // Remove any markdown bold
                 .replace(/\n\n/g, '\n') // Remove extra line breaks
                 .replace(/\n- /g, '\n• ') // Replace hyphens with bullet points
                 .replace(/\n\d+\. /g, '\n• '); // Replace numbered lists with bullet points
 
+            // Split by sections if they exist
+            const sections = formattedSuggestions.split(/\n(?=[A-Z][^\n:]+:)/g);
+
+            let formattedHTML = '';
+
+            if (sections.length > 1) {
+                // Multiple sections detected
+                formattedHTML = sections.map(section => {
+                    const titleMatch = section.match(/^([A-Z][^\n:]+):/i);
+                    if (titleMatch) {
+                        const title = titleMatch[1];
+                        const content = section.replace(/^[A-Z][^\n:]+:/i, '').trim();
+                        return `<div class="gemini-section">
+                            <h4>${title}</h4>
+                            <ul>${content.split('\n').map(point =>
+                                point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                            ).join('')}</ul>
+                        </div>`;
+                    }
+                    return `<div class="gemini-section">
+                        <ul>${section.split('\n').map(point =>
+                            point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                        ).join('')}</ul>
+                    </div>`;
+                }).join('');
+            } else {
+                // No clear sections, format as a single list
+                formattedHTML = `<ul>${formattedSuggestions.split('\n').map(point =>
+                    point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                ).join('')}</ul>`;
+            }
+
             aiSuggestionsDiv.innerHTML = `
                 <div class="gemini-optimization">
                     <h3>Gemini AI Optimization Suggestions</h3>
-                    <div class="gemini-content">${formattedSuggestions}</div>
+                    <div class="gemini-content">${formattedHTML}</div>
                 </div>
             `;
         } else {
@@ -597,17 +738,49 @@ async function generateGeminiGanttChart() {
         const result = await generateGanttChartSuggestions(tasks, projectName);
 
         if (result.success) {
-            // Format the response with better styling
-            const formattedSuggestions = result.suggestions
+            // Format the response with better styling and ensure point-by-point format
+            let formattedSuggestions = result.suggestions
                 .replace(/\*\*/g, '') // Remove any markdown bold
                 .replace(/\n\n/g, '\n') // Remove extra line breaks
                 .replace(/\n- /g, '\n• ') // Replace hyphens with bullet points
                 .replace(/\n\d+\. /g, '\n• '); // Replace numbered lists with bullet points
 
+            // Split by sections if they exist
+            const sections = formattedSuggestions.split(/\n(?=[A-Z][^\n:]+:)/g);
+
+            let formattedHTML = '';
+
+            if (sections.length > 1) {
+                // Multiple sections detected
+                formattedHTML = sections.map(section => {
+                    const titleMatch = section.match(/^([A-Z][^\n:]+):/i);
+                    if (titleMatch) {
+                        const title = titleMatch[1];
+                        const content = section.replace(/^[A-Z][^\n:]+:/i, '').trim();
+                        return `<div class="gemini-section">
+                            <h4>${title}</h4>
+                            <ul>${content.split('\n').map(point =>
+                                point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                            ).join('')}</ul>
+                        </div>`;
+                    }
+                    return `<div class="gemini-section">
+                        <ul>${section.split('\n').map(point =>
+                            point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                        ).join('')}</ul>
+                    </div>`;
+                }).join('');
+            } else {
+                // No clear sections, format as a single list
+                formattedHTML = `<ul>${formattedSuggestions.split('\n').map(point =>
+                    point.trim() ? `<li>${point.replace(/^•\s*/, '')}</li>` : ''
+                ).join('')}</ul>`;
+            }
+
             aiSuggestionsDiv.innerHTML = `
                 <div class="gemini-optimization">
                     <h3>Gemini AI Gantt Chart Analysis</h3>
-                    <div class="gemini-content">${formattedSuggestions}</div>
+                    <div class="gemini-content">${formattedHTML}</div>
                 </div>
             `;
         } else {
