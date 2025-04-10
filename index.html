@@ -6,6 +6,7 @@
     <title>AI Project Scheduler</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <!-- Removed Google Generative AI SDK as we're using direct API calls -->
 </head>
 <body>
     <div class="container">
@@ -35,7 +36,7 @@
             <textarea id="teamMembers" placeholder="Enter team members' names (comma-separated)"></textarea>
             <button onclick="addTask()">Add Task</button>
         </div>
-        
+
 
         <!-- Display Tasks -->
         <h2>Task List</h2>
@@ -49,11 +50,21 @@
         <h2>Project Timeline</h2>
         <div id="ganttChart"></div>
 
+        <!-- Gemini API Key Input -->
+        <div class="api-key-section">
+            <input type="password" id="geminiApiKey" placeholder="Enter Gemini API Key" />
+            <button onclick="initializeGemini()">Initialize Gemini AI</button>
+            <span id="geminiStatus">Gemini AI: Not initialized</span>
+        </div>
+
         <!-- Generate Schedule Button -->
         <button onclick="generateAISuggestions()">Generate AI Suggestions</button>
         <button onclick="generateAISchedule()">Generate AI Schedule</button>
+        <button onclick="generateGeminiOptimizations()" id="geminiOptimizeBtn" disabled>Get PMI/PRINCE2 Optimizations</button>
+        <button onclick="generateGeminiGanttChart()" id="geminiGanttBtn" disabled>Get Gemini Gantt Analysis</button>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Using a single consolidated JavaScript file -->
+    <script src="app.js"></script>
 </body>
 </html>

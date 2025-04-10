@@ -166,3 +166,73 @@ button, input, select, #taskList li, .gantt-task, #aiSuggestions li {
     border-radius: 5px;
     font-weight: bold;
 }
+
+/* Gemini API Section */
+.api-key-section {
+    background: #2B2F55;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#geminiStatus {
+    background: #3B3F77;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+#geminiStatus.initialized {
+    background: #4CAF50;
+    color: white;
+}
+
+#geminiOptimizeBtn, #geminiGanttBtn {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    margin: 5px;
+}
+
+#geminiOptimizeBtn:disabled, #geminiGanttBtn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+.gemini-optimization {
+    background: #2B2F55;
+    color: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-left: 5px solid #FF9800;
+}
+
+.gemini-optimization h3 {
+    color: #FF9800;
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.gemini-content {
+    white-space: pre-line;
+    line-height: 1.5;
+    font-size: 15px;
+}
+
+/* Style for bullet points */
+.gemini-content {
+    padding-left: 10px;
+}
