@@ -12,21 +12,39 @@ body {
 
 /* Container */
 .container {
-    width: 80%;
-    margin: auto;
-    background: #1F233A;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: linear-gradient(145deg, #1F233A, #262B4D);
     padding: 35px;
-    border-radius: 12px;
-    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Headers */
 h1 {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 600;
     color: #A7C7E7;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+    margin-bottom: 25px;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: inline-block;
+}
+
+h1:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #4285F4, #A7C7E7);
+    border-radius: 3px;
 }
 
 h2 {
@@ -56,6 +74,88 @@ input::placeholder {
     font-size: 14px;
 }
 
+/* Resource Inputs */
+.resource-inputs {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100% - 20px);
+    margin: 10px;
+    background: #2B2F55;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.resource-input {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    margin: 0 5px;
+}
+
+.resource-input label {
+    margin-right: 10px;
+    font-weight: bold;
+    color: #89C2D9;
+    min-width: 70px;
+}
+
+.resource-input input {
+    flex: 1;
+    max-width: 80px;
+    text-align: center;
+    font-weight: bold;
+    width: auto;
+    margin: 0;
+}
+
+/* Human and Bot indicators */
+.resource-indicator {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    font-size: 13px;
+}
+
+.human-indicator, .bot-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.human-icon, .bot-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.human-icon {
+    background-color: #4285F4;
+}
+
+.bot-icon {
+    background-color: #EA4335;
+}
+
+/* Task Resources Display */
+.task-resources {
+    display: flex;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resource-allocation {
+    margin-top: 8px;
+    padding: 5px 8px;
+    background: rgba(255, 152, 0, 0.15);
+    border-radius: 4px;
+    font-size: 13px;
+    border-left: 3px solid #FF9800;
+}
+
 input:focus, select:focus {
     border-color: #A7C7E7;
     box-shadow: 0px 0px 8px rgba(167, 199, 231, 0.5);
@@ -63,22 +163,41 @@ input:focus, select:focus {
 
 /* Buttons */
 button {
-    padding: 14px 20px;
-    background: linear-gradient(135deg, #556CD6, #334E9C);
+    padding: 14px 22px;
+    background: linear-gradient(135deg, #4285F4, #0F9D58);
     color: #ffffff;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 30px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
     transition: 0.3s ease-in-out;
-    box-shadow: 2px 4px 10px rgba(85, 108, 214, 0.3);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    margin: 8px;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+button:hover:before {
+    left: 100%;
 }
 
 button:hover {
-    background: linear-gradient(135deg, #4159B5, #2B3E73);
-    transform: translateY(-2px);
-    box-shadow: 2px 6px 15px rgba(85, 108, 214, 0.5);
+    background: linear-gradient(135deg, #3B78DC, #0E8C4F);
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Task List */
@@ -147,6 +266,22 @@ button:hover {
     font-size: 12px;
     color: #89C2D9;
     margin-top: 4px;
+}
+
+.gantt-resources {
+    display: flex;
+    margin-top: 5px;
+    gap: 8px;
+}
+
+.gantt-allocation {
+    font-size: 11px;
+    margin-top: 5px;
+    padding: 2px 5px;
+    background: rgba(255, 152, 0, 0.15);
+    border-radius: 3px;
+    border-left: 2px solid #FF9800;
+    color: #FFC107;
 }
 
 .gantt-timeline {
@@ -230,24 +365,37 @@ button:hover {
 
 /* AI Suggestions */
 #aiSuggestions {
-    background: #2B2F55;
-    padding: 18px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 8px rgba(255, 255, 255, 0.1);
+    background: linear-gradient(145deg, #2B2F55, #232742);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+    margin-top: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #aiSuggestions ul {
     list-style: none;
     padding: 0;
+    margin: 10px 0;
 }
 
 #aiSuggestions li {
-    background: #3B3F77;
-    margin: 6px;
-    padding: 12px;
-    border-radius: 8px;
+    background: linear-gradient(145deg, #3B3F77, #333866);
+    margin: 12px 0;
+    padding: 15px;
+    border-radius: 10px;
     text-align: left;
-    font-size: 14px;
+    font-size: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-left: 3px solid #4285F4;
+    line-height: 1.5;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+#aiSuggestions li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Smooth Animations */
@@ -266,12 +414,40 @@ button, input, select, #taskList li, .gantt-task, #aiSuggestions li {
     }
 }
 .ai-task {
-    background: #ffc107;
-    color: black;
-    padding: 10px;
-    margin: 5px;
-    border-radius: 5px;
-    font-weight: bold;
+    background: linear-gradient(145deg, #3B3F77, #2B2F55);
+    color: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-left: 4px solid #4285F4;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-task:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #4285F4;
+}
+
+.ai-task strong {
+    font-size: 16px;
+    color: #A7C7E7;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.ai-task i {
+    font-size: 14px;
+    opacity: 0.9;
+    display: block;
+    margin-top: 4px;
 }
 
 /* Gemini API Section */

@@ -128,6 +128,8 @@ function addTask() {
     const endDate = document.getElementById("endDate").value;
     const dependencyName = document.getElementById("dependency").value.trim();
     const teamAssigned = document.getElementById("teamAssigned").value;
+    const humanCount = parseInt(document.getElementById("humanCount").value) || 0;
+    const botCount = parseInt(document.getElementById("botCount").value) || 0;
 
     if (!name || isNaN(duration) || duration <= 0 || !startDate || !endDate) {
         alert("Please enter valid Task Name, Duration, Start Date, and End Date!");
@@ -136,6 +138,11 @@ function addTask() {
 
     if (tasks.some(task => task.name === name)) {
         alert("Task name must be unique!");
+        return;
+    }
+
+    if (humanCount <= 0 && botCount <= 0) {
+        alert("Please assign at least one human or bot to the task!");
         return;
     }
 
@@ -157,7 +164,10 @@ function addTask() {
         endDate: new Date(endDate),
         dependency,
         teamAssigned,
-        color: getRandomColor() // Add a random color for the Gantt chart
+        humanCount,
+        botCount,
+        color: getRandomColor(), // Add a random color for the Gantt chart
+        resourceAllocation: null // Will be filled by AI resource scheduler
     });
 
     displayTasks();
@@ -183,13 +193,49 @@ function getRandomColor() {
 // Display tasks in the task list
 function displayTasks() {
     const taskList = document.getElementById("taskList");
-    taskList.innerHTML = tasks.map(task => `
+    taskList.innerHTML = tasks.map(task => {
+        // Create resource allocation display
+        let resourceHTML = '';
+        if (task.humanCount > 0 || task.botCount > 0) {
+            resourceHTML = `<div class="task-resources">`;
+
+            if (task.humanCount > 0) {
+                resourceHTML += `
+                <div class="human-indicator">
+                    <span class="human-icon"></span>
+                    <span>${task.humanCount} Human${task.humanCount > 1 ? 's' : ''}</span>
+                </div>`;
+            }
+
+            if (task.botCount > 0) {
+                resourceHTML += `
+                <div class="bot-indicator">
+                    <span class="bot-icon"></span>
+                    <span>${task.botCount} Bot${task.botCount > 1 ? 's' : ''}</span>
+                </div>`;
+            }
+
+            resourceHTML += `</div>`;
+        }
+
+        // Add resource allocation if available
+        let allocationHTML = '';
+        if (task.resourceAllocation) {
+            allocationHTML = `<div class="resource-allocation">
+                <strong>AI Allocation:</strong> ${task.resourceAllocation}
+            </div>`;
+        }
+
+        return `
         <li style="border-left-color: ${task.color || '#A7C7E7'}">
             <strong>${task.name}</strong> - ${task.duration} days
             ${task.dependency ? `(Depends on: ${task.dependency})` : ""}
             <br><i>Team: ${task.teamAssigned}</i>
             <br><i>Start: ${task.startDate.toDateString()}, End: ${task.endDate.toDateString()}</i>
-        </li>`).join("\n");
+            ${resourceHTML}
+            ${allocationHTML}
+        </li>`;
+    }).join("\n");
 }
 
 // Generate AI schedule
@@ -204,11 +250,117 @@ function generateAISchedule() {
         if (!sortedTasks) return;
 
         calculateSchedule(sortedTasks);
+
+        // After calculating the schedule, allocate resources
+        allocateResources(sortedTasks);
+
         displayGanttChart(sortedTasks);
+        displayTasks(); // Update the task list to show allocations
     } catch (error) {
         console.error("Error generating schedule:", error);
         alert("Error generating schedule. Please check the console for details.");
     }
+}
+
+// Generate resource allocation without changing schedule
+function generateResourceAllocation() {
+    if (tasks.length === 0) {
+        alert("Please add tasks first!");
+        return;
+    }
+
+    try {
+        // Use existing tasks without re-sorting or re-scheduling
+        allocateResources(tasks);
+        displayGanttChart(tasks);
+        displayTasks();
+
+        // Show a message in the AI suggestions area
+        const aiSuggestionsDiv = document.getElementById("aiSuggestions");
+        aiSuggestionsDiv.innerHTML = `
+            <div class="gemini-optimization">
+                <h3>AI Resource Allocation</h3>
+                <div class="gemini-content">
+                    <ul>
+                        <li>Analyzed ${tasks.length} tasks and optimized human/bot allocation</li>
+                        <li>Allocated resources based on team type and task requirements</li>
+                        <li>Development tasks: 40% human, 60% bot allocation</li>
+                        <li>Design tasks: 70% human, 30% bot allocation</li>
+                        <li>Testing tasks: 30% human, 70% bot allocation</li>
+                        <li>Marketing tasks: 80% human, 20% bot allocation</li>
+                        <li>Other tasks: 50% human, 50% bot allocation</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Error generating resource allocation:", error);
+        alert("Error generating resource allocation. Please check the console for details.");
+    }
+}
+
+// AI Resource Allocation
+function allocateResources(sortedTasks) {
+    // This function will allocate humans and bots to tasks based on various factors
+    console.log("Allocating resources for tasks...");
+
+    // For each task, determine the optimal allocation of humans vs bots
+    sortedTasks.forEach(task => {
+        if (task.humanCount <= 0 && task.botCount <= 0) {
+            // Skip tasks with no resources
+            return;
+        }
+
+        // Calculate the total work units required for this task
+        // Assume 8 work hours per day per resource
+        const totalWorkHours = task.duration * 8;
+
+        // Determine allocation based on task characteristics
+        let allocation = "";
+
+        if (task.humanCount > 0 && task.botCount > 0) {
+            // We have both humans and bots
+
+            // Determine the optimal split based on task type and team
+            let humanPercentage = 50; // Default to 50/50 split
+
+            // Adjust based on team type
+            if (task.teamAssigned === "Development") {
+                // Development tasks can be more automated
+                humanPercentage = 40;
+            } else if (task.teamAssigned === "Design") {
+                // Design tasks need more human input
+                humanPercentage = 70;
+            } else if (task.teamAssigned === "Testing") {
+                // Testing can be heavily automated
+                humanPercentage = 30;
+            } else if (task.teamAssigned === "Marketing") {
+                // Marketing needs more human creativity
+                humanPercentage = 80;
+            }
+
+            // Calculate hours for each resource type
+            const humanHours = Math.round((totalWorkHours * humanPercentage) / 100);
+            const botHours = totalWorkHours - humanHours;
+
+            // Calculate how many hours per human and bot
+            const hoursPerHuman = Math.round(humanHours / task.humanCount);
+            const hoursPerBot = Math.round(botHours / task.botCount);
+
+            allocation = `${humanPercentage}% human (${hoursPerHuman}h each), ${100-humanPercentage}% bot (${hoursPerBot}h each)`;
+        } else if (task.humanCount > 0) {
+            // Only humans available
+            const hoursPerHuman = Math.round(totalWorkHours / task.humanCount);
+            allocation = `100% human (${hoursPerHuman}h each)`;
+        } else if (task.botCount > 0) {
+            // Only bots available
+            const hoursPerBot = Math.round(totalWorkHours / task.botCount);
+            allocation = `100% bot (${hoursPerBot}h each)`;
+        }
+
+        // Set the allocation
+        task.resourceAllocation = allocation;
+    });
 }
 
 // Topological sort for task dependencies
@@ -316,10 +468,40 @@ function displayGanttChart(tasks) {
         const taskRow = document.createElement('div');
         taskRow.className = 'gantt-row';
 
-        // Add task name
+        // Add task name and resources
         const taskName = document.createElement('div');
         taskName.className = 'gantt-task-name';
-        taskName.innerHTML = `<div>${task.name}</div><div class="gantt-team">${task.teamAssigned}</div>`;
+
+        // Create resource indicators
+        let resourceHTML = '';
+        if (task.humanCount > 0 || task.botCount > 0) {
+            resourceHTML = `<div class="gantt-resources">`;
+
+            if (task.humanCount > 0) {
+                resourceHTML += `
+                <div class="human-indicator">
+                    <span class="human-icon"></span>
+                    <span>${task.humanCount}</span>
+                </div>`;
+            }
+
+            if (task.botCount > 0) {
+                resourceHTML += `
+                <div class="bot-indicator">
+                    <span class="bot-icon"></span>
+                    <span>${task.botCount}</span>
+                </div>`;
+            }
+
+            resourceHTML += `</div>`;
+        }
+
+        taskName.innerHTML = `
+            <div>${task.name}</div>
+            <div class="gantt-team">${task.teamAssigned}</div>
+            ${resourceHTML}
+            ${task.resourceAllocation ? `<div class="gantt-allocation">${task.resourceAllocation}</div>` : ''}
+        `;
         taskRow.appendChild(taskName);
 
         // Add task timeline
@@ -441,14 +623,17 @@ async function generateTaskOptimizations(tasks, projectName) {
             - Task: ${task.name}
             - Duration: ${task.duration} days
             - Team: ${task.teamAssigned}
-            - Team Size: ${task.teamSize}
+            - Humans: ${task.humanCount || 0}
+            - Bots: ${task.botCount || 0}
             - Dependencies: ${task.dependency || 'None'}
+            ${task.resourceAllocation ? `- AI Allocation: ${task.resourceAllocation}` : ''}
         `).join('\n')}
 
         Based on this information, provide a VERY CONCISE analysis (maximum 300 words total) with:
         1. Critical path identification (just list the tasks in order)
         2. Top 3 optimization recommendations using PMI/PRINCE2 terminology
         3. Top 2 potential risks and brief mitigation strategies
+        4. One suggestion for improving human/bot allocation
 
         Format your response in short bullet points only. Be extremely concise.
         `;
@@ -586,16 +771,18 @@ async function generateGanttChartSuggestions(tasks, projectName) {
             - Task: ${task.name}
             - Duration: ${task.duration} days
             - Team: ${task.teamAssigned}
-            - Team Size: ${task.teamSize}
+            - Humans: ${task.humanCount || 0}
+            - Bots: ${task.botCount || 0}
             - Dependencies: ${task.dependency || 'None'}
             - Start Date: ${task.startDate.toDateString()}
             - End Date: ${task.endDate.toDateString()}
+            ${task.resourceAllocation ? `- AI Allocation: ${task.resourceAllocation}` : ''}
         `).join('\n')}
 
         Based on this information, provide a VERY CONCISE analysis (maximum 250 words total) with:
         1. Key milestones (maximum 3)
         2. Parallel tasks that can be executed simultaneously (just list them)
-        3. One sentence about resource leveling
+        3. One sentence about human/bot resource optimization
 
         Format your response in short bullet points only. Be extremely concise.
         `;
