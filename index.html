@@ -14,51 +14,196 @@
 
         <!-- Project Details -->
         <div class="project-details">
-            <input type="text" id="projectName" placeholder="Project Name" required>
-            <input type="text" id="organizationName" placeholder="Organization Name" required>
+            <h2>Project Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="organizationName">Organization Name</label>
+                    <input type="text" id="organizationName" required>
+                </div>
+                <div class="form-group textarea-group">
+                    <label for="projectDescription">Project Description</label>
+                    <textarea id="projectDescription" placeholder="Brief description of the project"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectBudget">Project Budget (₹)</label>
+                    <input type="number" id="projectBudget" min="0" step="100">
+                </div>
+            </div>
+            <div class="project-timeline">
+                <h3>Project Timeline</h3>
+                <div class="timeline-slider-container">
+                    <div class="timeline-dates">
+                        <div class="timeline-date">
+                            <label for="projectStartDate">Start Date</label>
+                            <input type="date" id="projectStartDate">
+                        </div>
+                        <div class="timeline-date">
+                            <label for="projectEndDate">End Date</label>
+                            <input type="date" id="projectEndDate" readonly>
+                        </div>
+                    </div>
+                    <div class="timeline-duration">
+                        <label for="projectDuration">Project Duration: <span id="projectDurationValue">0</span> days</label>
+                        <input type="range" id="projectDuration" min="7" max="365" value="90" class="timeline-slider">
+                    </div>
+                </div>
+            </div>
+            <div class="project-actions">
+                <button id="saveProjectBtn" class="secondary-btn">Save Project</button>
+                <button id="loadProjectBtn" class="secondary-btn">Load Project</button>
+            </div>
         </div>
 
         <!-- Task Input Form -->
         <div class="task-form">
-            <input type="text" id="taskName" placeholder="Task Name" required>
-            <input type="number" id="duration" placeholder="Task Duration (days)" required> <!-- Added this field -->
-            <input type="date" id="startDate" required>
-            <input type="date" id="endDate" required>
-            <input type="text" id="dependency" placeholder="Dependency (Task Name)">
-            <select id="teamAssigned">
-                <option value="">Assign to Team</option>
-                <option value="Development">Development</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Testing">Testing</option>
-            </select>
-
-            <!-- Resource Allocation -->
-            <div class="resource-inputs">
-                <div class="resource-input">
-                    <label for="humanCount">Humans:</label>
-                    <input type="number" id="humanCount" min="0" value="1">
+            <h2>Add New Task</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="taskName">Task Name</label>
+                    <input type="text" id="taskName" required>
                 </div>
-                <div class="resource-input">
-                    <label for="botCount">Bots:</label>
-                    <input type="number" id="botCount" min="0" value="0">
+                <div class="form-group textarea-group">
+                    <label for="taskDescription">Task Description</label>
+                    <textarea id="taskDescription" placeholder="Brief description of the task"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (days)</label>
+                    <input type="number" id="duration" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date (Auto-calculated)</label>
+                    <input type="date" id="endDate" readonly required>
+                </div>
+                <div class="form-group">
+                    <label for="dependency">Dependency</label>
+                    <input type="text" id="dependency" placeholder="Enter task name this depends on">
+                </div>
+                <div class="form-group">
+                    <label for="teamAssigned">Assign Team</label>
+                    <select id="teamAssigned">
+                        <option value="">Select Team</option>
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Testing">Testing</option>
+                        <option value="Management">Management</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskCategory">Category</label>
+                    <input type="text" id="taskCategory" placeholder="e.g., Frontend, Backend, UX">
+                </div>
+                <div class="form-group">
+                    <label for="taskCost">Estimated Cost (₹)</label>
+                    <input type="number" id="taskCost" min="0" step="10">
                 </div>
             </div>
-            <button onclick="addTask()">Add Task</button>
+
+            <!-- Resource Allocation -->
+            <div class="resource-section">
+                <h3>Resource Allocation</h3>
+                <div class="resource-inputs">
+                    <div class="resource-input">
+                        <label for="humanCount">Humans:</label>
+                        <input type="number" id="humanCount" min="0" value="1">
+                    </div>
+                    <div class="resource-input">
+                        <label for="botCount">Bots:</label>
+                        <input type="number" id="botCount" min="0" value="0">
+                    </div>
+                </div>
+            </div>
+            <button onclick="addTask()" class="primary-btn">Add Task</button>
         </div>
 
 
         <!-- Display Tasks -->
-        <h2>Task List</h2>
-        <ul id="taskList"></ul>
+        <div class="task-list-section">
+            <div class="section-header">
+                <h2>Task List</h2>
+                <div class="task-filters">
+                    <select id="filterPriority">
+                        <option value="">All Priorities</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                    <select id="filterTeam">
+                        <option value="">All Teams</option>
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Testing">Testing</option>
+                        <option value="Management">Management</option>
+                    </select>
+                    <button id="clearFiltersBtn" class="secondary-btn">Clear Filters</button>
+                </div>
+            </div>
+            <div class="task-progress-overview">
+                <div class="progress-bar-container">
+                    <div class="progress-label">Project Completion:</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="projectProgress" style="width: 0%;"></div>
+                    </div>
+                    <div class="progress-percentage" id="projectProgressPercentage">0%</div>
+                </div>
+                <div class="project-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Tasks</div>
+                        <div class="stat-value" id="totalTasksCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value" id="completedTasksCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Cost</div>
+                        <div class="stat-value" id="totalCost">$0</div>
+                    </div>
+                </div>
+            </div>
+            <ul id="taskList" class="enhanced-task-list"></ul>
+        </div>
 
         <!-- AI Recommendations -->
         <h2>AI Suggestions</h2>
         <div id="aiSuggestions"></div>
 
         <!-- Gantt Chart -->
-        <h2>Project Timeline</h2>
-        <div id="ganttChart"></div>
+        <div class="gantt-section">
+            <h2>Project Timeline</h2>
+            <div class="gantt-controls">
+                <div class="zoom-controls">
+                    <label for="timelineZoom">Timeline Zoom:</label>
+                    <input type="range" id="timelineZoom" min="1" max="10" value="5" class="timeline-slider">
+                </div>
+                <div class="scroll-controls">
+                    <label for="timelineScroll">Timeline Position:</label>
+                    <input type="range" id="timelineScroll" min="0" max="100" value="0" class="timeline-slider">
+                </div>
+            </div>
+            <div class="gantt-container">
+                <div id="ganttChart"></div>
+            </div>
+        </div>
 
         <!-- Gemini API Key Input -->
         <div class="api-key-section">
@@ -80,6 +225,7 @@
     <script src="js/gantt-chart.js"></script>
     <script src="js/ai-service.js"></script>
     <script src="js/ui-controller.js"></script>
+    <script src="js/date-calculator.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

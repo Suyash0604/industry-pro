@@ -7,7 +7,7 @@ const TaskManager = (function() {
     // Private variables
     let tasks = [];
     let nextId = 1;
-    
+
     // Private methods
     function getRandomColor() {
         const colors = [
@@ -24,7 +24,7 @@ const TaskManager = (function() {
         ];
         return colors[Math.floor(Math.random() * colors.length)];
     }
-    
+
     // Topological sort for task dependencies
     function topologicalSort() {
         const visited = new Set();
@@ -59,7 +59,7 @@ const TaskManager = (function() {
 
         return stack.reverse();
     }
-    
+
     // Calculate schedule based on dependencies
     function calculateSchedule(sortedTasks) {
         sortedTasks.forEach(task => {
@@ -75,7 +75,7 @@ const TaskManager = (function() {
             task.endDate.setDate(task.endDate.getDate() + task.duration);
         });
     }
-    
+
     // AI Resource Allocation
     function allocateResources(sortedTasks) {
         // This function will allocate humans and bots to tasks based on various factors
@@ -139,34 +139,47 @@ const TaskManager = (function() {
             task.resourceAllocation = allocation;
         });
     }
-    
+
     // Public API
     return {
         // Get all tasks
         getTasks: function() {
             return tasks;
         },
-        
+
         // Add a new task
         addTask: function(taskData) {
-            const { name, duration, startDate, endDate, dependencyName, teamAssigned, humanCount, botCount } = taskData;
-            
+            const {
+                name,
+                description,
+                duration,
+                startDate,
+                endDate,
+                dependencyName,
+                teamAssigned,
+                priority,
+                category,
+                cost,
+                humanCount,
+                botCount
+            } = taskData;
+
             // Validation
             if (!name || isNaN(duration) || duration <= 0 || !startDate || !endDate) {
                 alert("Please enter valid Task Name, Duration, Start Date, and End Date!");
                 return false;
             }
-            
+
             if (tasks.some(task => task.name === name)) {
                 alert("Task name must be unique!");
                 return false;
             }
-            
+
             if (humanCount <= 0 && botCount <= 0) {
                 alert("Please assign at least one human or bot to the task!");
                 return false;
             }
-            
+
             // Check dependency
             let dependency = null;
             if (dependencyName) {
@@ -177,25 +190,88 @@ const TaskManager = (function() {
                 }
                 dependency = dependencyName;
             }
-            
+
+            // Calculate end date based on start date and duration
+            const calculatedEndDate = DateCalculator.calculateEndDate(new Date(startDate), duration);
+
             // Create and add the task
             tasks.push({
                 id: nextId++,
                 name,
+                description: description || "",
                 duration,
                 startDate: new Date(startDate),
-                endDate: new Date(endDate),
+                endDate: calculatedEndDate || new Date(endDate), // Use calculated end date or provided end date as fallback
                 dependency,
                 teamAssigned,
+                priority: priority || "Medium",
+                category: category || "",
+                cost: cost || 0,
                 humanCount,
                 botCount,
                 color: getRandomColor(),
-                resourceAllocation: null // Will be filled by AI resource scheduler
+                resourceAllocation: null, // Will be filled by AI resource scheduler
+                completion: 0 // Task completion percentage
             });
-            
+
+            // Update project stats
+            this.updateProjectStats();
+
             return true;
         },
-        
+
+        // Update task completion percentage
+        updateTaskCompletion: function(taskId, completionPercentage) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completion = Math.min(100, Math.max(0, completionPercentage));
+                this.updateProjectStats();
+                return true;
+            }
+            return false;
+        },
+
+        // Update project statistics
+        updateProjectStats: function() {
+            if (tasks.length === 0) {
+                document.getElementById('totalTasksCount').textContent = '0';
+                document.getElementById('completedTasksCount').textContent = '0';
+                document.getElementById('totalCost').textContent = '₹ 0';
+                document.getElementById('projectProgress').style.width = '0%';
+                document.getElementById('projectProgressPercentage').textContent = '0%';
+                return;
+            }
+
+            // Calculate project stats
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.completion === 100).length;
+            const totalCompletion = tasks.reduce((sum, task) => sum + task.completion, 0);
+            const averageCompletion = Math.round(totalCompletion / totalTasks);
+            const totalCost = tasks.reduce((sum, task) => sum + (task.cost || 0), 0);
+
+            // Update UI
+            document.getElementById('totalTasksCount').textContent = totalTasks;
+            document.getElementById('completedTasksCount').textContent = completedTasks;
+            document.getElementById('totalCost').textContent = '₹ ' + totalCost;
+            document.getElementById('projectProgress').style.width = averageCompletion + '%';
+            document.getElementById('projectProgressPercentage').textContent = averageCompletion + '%';
+        },
+
+        // Filter tasks by criteria
+        filterTasks: function(criteria) {
+            let filteredTasks = [...tasks];
+
+            if (criteria.priority && criteria.priority !== '') {
+                filteredTasks = filteredTasks.filter(task => task.priority === criteria.priority);
+            }
+
+            if (criteria.team && criteria.team !== '') {
+                filteredTasks = filteredTasks.filter(task => task.teamAssigned === criteria.team);
+            }
+
+            return filteredTasks;
+        },
+
         // Generate AI schedule
         generateSchedule: function() {
             if (tasks.length === 0) {
@@ -208,10 +284,10 @@ const TaskManager = (function() {
                 if (!sortedTasks) return null;
 
                 calculateSchedule(sortedTasks);
-                
+
                 // After calculating the schedule, allocate resources
                 allocateResources(sortedTasks);
-                
+
                 return sortedTasks;
             } catch (error) {
                 console.error("Error generating schedule:", error);
@@ -219,7 +295,7 @@ const TaskManager = (function() {
                 return null;
             }
         },
-        
+
         // Generate resource allocation without changing schedule
         generateResourceAllocation: function() {
             if (tasks.length === 0) {

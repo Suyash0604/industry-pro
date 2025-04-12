@@ -4,8 +4,56 @@
  */
 
 const GanttChart = (function() {
+    // Private variables
+    let zoomLevel = 5; // Default zoom level (1-10)
+    let scrollPosition = 0; // Default scroll position (0-100%)
+    let chartWidth = 100; // Base width percentage
+    let currentTasks = []; // Store current tasks for redrawing
+
     // Private methods
-    
+
+    // Initialize Gantt chart controls
+    function initGanttControls() {
+        const zoomSlider = document.getElementById('timelineZoom');
+        const scrollSlider = document.getElementById('timelineScroll');
+
+        if (zoomSlider) {
+            zoomSlider.addEventListener('input', function() {
+                zoomLevel = parseInt(this.value);
+                updateGanttChart();
+            });
+        }
+
+        if (scrollSlider) {
+            scrollSlider.addEventListener('input', function() {
+                scrollPosition = parseInt(this.value);
+                updateGanttChart();
+            });
+        }
+    }
+
+    // Update Gantt chart based on zoom and scroll
+    function updateGanttChart() {
+        if (currentTasks.length === 0) return;
+
+        // Calculate new chart width based on zoom level
+        chartWidth = 100 + (zoomLevel - 5) * 40; // 100% at level 5, scales up/down from there
+
+        const ganttChart = document.getElementById("ganttChart");
+        if (!ganttChart) return;
+
+        // Apply zoom by adjusting the width
+        const timelineCells = ganttChart.querySelectorAll('.gantt-timeline');
+        timelineCells.forEach(cell => {
+            cell.style.width = chartWidth + '%';
+        });
+
+        // Apply scroll position
+        const maxScroll = Math.max(0, chartWidth - 100); // Maximum scroll range
+        const scrollPercentage = (scrollPosition / 100) * maxScroll;
+        ganttChart.scrollLeft = (ganttChart.scrollWidth * scrollPercentage) / chartWidth;
+    }
+
     // Display Gantt chart
     function createGanttChart(tasks) {
         if (tasks.length === 0) return;
@@ -147,12 +195,33 @@ const GanttChart = (function() {
 
         ganttChart.appendChild(legendDiv);
     }
-    
+
     // Public API
     return {
         // Display Gantt chart
         displayGanttChart: function(tasks) {
+            // Store current tasks for redrawing
+            currentTasks = [...tasks];
+
+            // Create the initial Gantt chart
             createGanttChart(tasks);
-        }
+
+            // Initialize controls
+            initGanttControls();
+
+            // Reset sliders to default positions
+            const zoomSlider = document.getElementById('timelineZoom');
+            const scrollSlider = document.getElementById('timelineScroll');
+
+            if (zoomSlider) zoomSlider.value = 5;
+            if (scrollSlider) scrollSlider.value = 0;
+
+            // Set initial zoom level and scroll position
+            zoomLevel = 5;
+            scrollPosition = 0;
+        },
+
+        // Update Gantt chart (exposed for other modules)
+        updateGanttChart: updateGanttChart
     };
 })();
